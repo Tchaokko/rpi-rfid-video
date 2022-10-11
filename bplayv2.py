@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from random import randint
-from mfrc522 import SimpleMFRC522
-from omxplayer.player import OMXPlayer
+from SimpleMFRC522 import SimpleMFRC522
+import vlc
 from pathlib import Path
 import time
 import os
@@ -9,7 +9,7 @@ import logging
 import random
 import glob
 import RPi.GPIO as GPIO
-
+import pygame
 
 def playmovie(video,directory,player):
 
@@ -17,7 +17,7 @@ def playmovie(video,directory,player):
 
 	VIDEO_PATH = Path(directory + video)
 
-	isPlay = isplaying()
+	isPlay = is_playing(player)
 
 	if not isPlay:
 
@@ -29,40 +29,71 @@ def playmovie(video,directory,player):
 		player.quit()
 
 	try:
-		player = OMXPlayer(VIDEO_PATH, 
-			dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+		media = vlc.Media(VIDEO_PATH)
+		player.set_media(media)
+		player.play()
 	except SystemError:
 		logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' $Error: Cannot Find Video.')
 
-	logging.info('playmovie: omxplayer %s' % video)
+	logging.info('playmovie: vlc %s' % video)
 
 	time.sleep(2)
 
 	return player
 
-def isplaying():
+def quit_player_if_ended(player):
+	print('quit_player_if_ended')
+	if(player):
+		state = player.get_state()
+		print(state)	
+		if state == 6:
+			player.exit()
 
-		"""check if omxplayer is running
-		if the value returned is a 1 or 0, omxplayer is NOT playing a video
-		if the value returned is a 2, omxplayer is playing a video"""
+def is_playing(player):
+		playing = set([1,2,3,4])
+		""" 
+		VLC Status
+        0: 'NothingSpecial'
+        1: 'Opening'
+        2: 'Buffering'
+        3: 'Playing'
+        4: 'Paused'
+        5: 'Stopped'
+        6: 'Ended'
+        7: 'Error'
+		"""
+		if(player):
+			state = player.get_state()
+			if state in playing:
+				return True
+			else:
+				return False
 
-		processname = 'omxplayer'
-		tmp = os.popen("ps -Af").read()
-		proccount = tmp.count(processname)
 
-		if proccount == 1 or proccount == 0:
-			proccount = False
-		else:
-			proccount = True
 
-		return proccount
+def activate_blackscreen():
+	pygame.init()
+	# pygame.mouse.set_visible(False)
+	screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+	screen.fill((0, 0, 0))
+
+def deactivate_blackscreen():
+	pygame.mouse.set_visible(True)
+	pygame.quit()
+
 
 
 def main():
 
-	#program start
+	activate_blackscreen()
 
-	directory = '/media/pi/BILLYUSB1/'
+	#program start
+	playerVLC = vlc.MediaPlayer()
+ 
+	# toggling full screen
+	
+	# playerVLC.toggle_fullscreen()
+	directory = '/media/timestory3/76E8-CACF/'
 
 	LOG_FILENAME = '/tmp/bplay_%s.log' %time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())).replace(" ","_").replace(":","")
 	logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
@@ -74,16 +105,17 @@ def main():
 
 	current_movie_id = 111111222222
 
-	playerOB = ""
+	#playerVLC = ""
 
 	try:
 		while True: 
 
-			isPlay = isplaying()
+			isPlay = is_playing(playerVLC)
+			#quit_player_if_ended(playerVLC)
+
 			logging.debug(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " Movie Playing: %s" % isPlay)
 
 			if not isPlay:
-
 				current_movie_id = 555555555555
 				
 			start_time = time.time()
@@ -93,7 +125,7 @@ def main():
 			
 			temp_time = time.time()
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " #READER BEFORE %s" %temp_time)
-			idd, movie_name = reader.read()
+			idd, movie_name = reader.read(playerVLC)
 
 			temp_time = time.time() - temp_time
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " #READER AFTER - ELAPSED TIME %s" %temp_time)
@@ -116,7 +148,7 @@ def main():
 					current_movie_id = idd 	#we set this here instead of above bc it may mess up on first read
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " playing: omxplayer %s" % movie_name)
 					
-					playerOB = playmovie(movie_name,directory,playerOB)
+					playerVLC = playmovie(movie_name,directory,playerVLC)
 					
 
 				elif 'folder' in movie_name:
@@ -133,7 +165,7 @@ def main():
 						direc = 'home/pi/Videos/'
 
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " randomly selected: omxplayer %s" % movie_name)
-					playerOB = playmovie(movie_name,direc,playerOB)
+					playerVLC = playmovie(movie_name,direc,playerVLC)
 
 
 			else:
@@ -144,14 +176,14 @@ def main():
 				logging.debug('end_time: %s' %end_time)
 				logging.debug('start_time1: %s' %start_time)
 
-				isPlay = isplaying()
+				isPlay = is_playing(playerVLC)
 
 				if isPlay:
 
 					if elapsed_time > 0.6 and elapsed_time < 8:
 						#pause, unpause movie
 						logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " PLAY/PAUSE %s" %elapsed_time)
-						playerOB.play_pause()
+						playerVLC.pause()
 
 
 	except KeyboardInterrupt:

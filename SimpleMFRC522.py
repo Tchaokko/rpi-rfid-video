@@ -2,7 +2,7 @@
 
 import MFRC522
 import RPi.GPIO as GPIO
-  
+import pygame
 class SimpleMFRC522:
 
   READER = None;
@@ -10,14 +10,26 @@ class SimpleMFRC522:
   KEY = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
   BLOCK_ADDRS = [8, 9, 10]
   
+
   def __init__(self):
     self.READER = MFRC522.MFRC522()
   
-  def read(self):
+  def read(self, playerVlc):
       id, text = self.read_no_block()        
       while not id:
+          if(playerVlc):
+            self.quit_player_if_ended(playerVlc)
           id, text = self.read_no_block()  
       return id, text
+
+  def quit_player_if_ended(self, player):
+    print('quit_player_if_ended')
+    if(player):
+      state = player.get_state()
+      print(state)	
+      if state == 6:
+        screen = pygame.display.set_mode((0, 0),pygame.FULLSCREEN)
+        screen.fill((0, 0, 0))
 
   def read_id(self):
     id, text = self.read_no_block()        

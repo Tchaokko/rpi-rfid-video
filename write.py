@@ -11,11 +11,11 @@ try:
 
     while True:
 
-        text = raw_input('New data:')
+        text = ('shortVideo.mp4')
 
-        if len(text) > 48:
+        # if len(text) > 48:
 
-            text = raw_input('Data was too long, shorten it and type it here:')
+        #     text = raw_input('Data was too long, shorten it and type it here:')
 
         print("Now place your tag to write")
 
