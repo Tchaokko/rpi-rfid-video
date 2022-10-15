@@ -10,9 +10,7 @@ import random
 import glob
 import RPi.GPIO as GPIO
 import pygame
-import keyboard
-import sys
-
+import cec
 
 def playmovie(video,directory,player, reader):
 
@@ -154,6 +152,8 @@ def main():
 
 if __name__ == '__main__':
 	os.environ["DISPLAY"] = ":0"
-	# set hotkey    
+	cec.init()
+	tv = cec.Device(cec.CECDEVICE_TV)
+	print(tv)
 	main()
 
