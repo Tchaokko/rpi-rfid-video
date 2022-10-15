@@ -10,14 +10,17 @@ import random
 import glob
 import RPi.GPIO as GPIO
 import pygame
+import keyboard
+import sys
 
-def playmovie(video,directory,player):
+
+def playmovie(video,directory,player, reader):
 
 	"""plays a video."""
 
 	VIDEO_PATH = Path(directory + video)
 
-	isPlay = is_playing(player)
+	isPlay = reader.is_playing(player)
 
 	if not isPlay:
 
@@ -26,10 +29,13 @@ def playmovie(video,directory,player):
 	else:
 
 		logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+ 'playmovie: Video already playing, so quit current video, then play')
-		player.quit()
-
+		player.stop()
 	try:
+
+		win_id = pygame.display.get_wm_info()['window']
+		player.set_xwindow(win_id)
 		media = vlc.Media(VIDEO_PATH)
+		pygame.mouse.set_visible(False)
 		player.set_media(media)
 		player.play()
 	except SystemError:
@@ -49,43 +55,17 @@ def quit_player_if_ended(player):
 		if state == 6:
 			player.exit()
 
-def is_playing(player):
-		playing = set([1,2,3,4])
-		""" 
-		VLC Status
-        0: 'NothingSpecial'
-        1: 'Opening'
-        2: 'Buffering'
-        3: 'Playing'
-        4: 'Paused'
-        5: 'Stopped'
-        6: 'Ended'
-        7: 'Error'
-		"""
-		if(player):
-			state = player.get_state()
-			if state in playing:
-				return True
-			else:
-				return False
-
-
 
 def activate_blackscreen():
 	pygame.init()
-	# pygame.mouse.set_visible(False)
+	pygame.mouse.set_visible(False)
 	screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 	screen.fill((0, 0, 0))
-
-def deactivate_blackscreen():
-	pygame.mouse.set_visible(True)
-	pygame.quit()
-
-
+	return screen
 
 def main():
 
-	activate_blackscreen()
+	screen = activate_blackscreen()
 
 	#program start
 	playerVLC = vlc.MediaPlayer()
@@ -99,7 +79,7 @@ def main():
 	logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 	#logging.basicConfig(level=logging.DEBUG)
 
-	reader = SimpleMFRC522()
+	reader = SimpleMFRC522(screen)
 
 	logging.info("\n\n\n***** %s Begin Player****\n\n\n" %time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
@@ -107,10 +87,10 @@ def main():
 
 	#playerVLC = ""
 
-	try:
-		while True: 
+	while True:
+		try:
 
-			isPlay = is_playing(playerVLC)
+			isPlay = reader.is_playing(playerVLC)
 			#quit_player_if_ended(playerVLC)
 
 			logging.debug(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " Movie Playing: %s" % isPlay)
@@ -148,7 +128,7 @@ def main():
 					current_movie_id = idd 	#we set this here instead of above bc it may mess up on first read
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " playing: omxplayer %s" % movie_name)
 					
-					playerVLC = playmovie(movie_name,directory,playerVLC)
+					playerVLC = playmovie(movie_name,directory,playerVLC,reader)
 					
 
 				elif 'folder' in movie_name:
@@ -167,29 +147,13 @@ def main():
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " randomly selected: omxplayer %s" % movie_name)
 					playerVLC = playmovie(movie_name,direc,playerVLC)
 
-
-			else:
-
-				end_time = time.time()
-				elapsed_time = end_time - start_time
-
-				logging.debug('end_time: %s' %end_time)
-				logging.debug('start_time1: %s' %start_time)
-
-				isPlay = is_playing(playerVLC)
-
-				if isPlay:
-
-					if elapsed_time > 0.6 and elapsed_time < 8:
-						#pause, unpause movie
-						logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " PLAY/PAUSE %s" %elapsed_time)
-						playerVLC.pause()
-
-
-	except KeyboardInterrupt:
-		GPIO.cleanup()
-		print("\nAll Done")
+		except KeyboardInterrupt:
+			print('exit')
+			GPIO.cleanup()
+			print("\nAll Done")
 
 if __name__ == '__main__':
-	
+	os.environ["DISPLAY"] = ":0"
+	# set hotkey    
 	main()
+

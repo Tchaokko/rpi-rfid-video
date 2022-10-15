@@ -11,7 +11,7 @@ try:
 
     while True:
 
-        text = ('shortVideo.mp4')
+        text = ('rick.mkv')
 
         # if len(text) > 48:
 

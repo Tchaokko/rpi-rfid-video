@@ -35,6 +35,7 @@ def video(source):
     print("Duration : " + str(duration))
 
 # call the video method
+#os.environ["DISPLAY"] = ":0"
 pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen.fill((0, 0, 0))
