@@ -12,7 +12,6 @@ class SimpleMFRC522:
   
   KEY = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
   BLOCK_ADDRS = [8, 9, 10]
-  play_has_ended = False
   
 
   def __init__(self, screen):
@@ -20,54 +19,10 @@ class SimpleMFRC522:
     self.screen = screen
 
   
-  def read(self, playerVlc):
+  def read(self):
     id, text = self.read_no_block()
-    while not id:
-      for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                print("escape pressed")
-                sys.exit()
-      if(playerVlc):
-          self.check_status(playerVlc)
-      id, text = self.read_no_block()
-      print(id, text)
+    print(id, text)
     return id, text
-
-  def check_status(self, player):
-    if(player):
-      state = player.get_state()
-      if self.is_playing(player) and self.play_has_ended:
-        self.play_has_ended = False
-      elif state == 6 and not self.play_has_ended:
-        player.stop()
-        self.screen.fill((0, 0, 0))
-        pygame.display.update()
-        self.play_has_ended = True
-
-  def is_playing(self, player):
-      playing = set([1,2,3,4])
-      """ 
-      VLC Status
-          0: 'NothingSpecial'
-          1: 'Opening'
-          2: 'Buffering'
-          3: 'Playing'
-          4: 'Paused'
-          5: 'Stopped'
-          6: 'Ended'
-          7: 'Error'
-      """
-      if(player):
-        state = player.get_state()
-        if state in playing:
-          return True
-        else:
-          return False
-
 
   def read_id(self):
     id, text = self.read_no_block()        
@@ -77,7 +32,7 @@ class SimpleMFRC522:
 
   def read_id_no_block(self):
     id, text = self.read_no_block()
-    return id
+    return id, text
   
   def read_no_block(self):
     (status, TagType) = self.READER.MFRC522_Request(self.READER.PICC_REQIDL)
