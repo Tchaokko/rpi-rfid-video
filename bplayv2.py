@@ -10,12 +10,12 @@ import random
 import glob
 import RPi.GPIO as GPIO
 import pygame
-import cec
+from cec import CustomCec
 
 def playmovie(video,directory,player, reader):
 
 	"""plays a video."""
-
+	cec = CustomCec()
 	VIDEO_PATH = Path(directory + video)
 
 	isPlay = reader.is_playing(player)
@@ -29,7 +29,8 @@ def playmovie(video,directory,player, reader):
 		logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+ 'playmovie: Video already playing, so quit current video, then play')
 		player.stop()
 	try:
-
+		cec.force_hdmi_to_input()
+		time.sleep(2)
 		win_id = pygame.display.get_wm_info()['window']
 		player.set_xwindow(win_id)
 		media = vlc.Media(VIDEO_PATH)
@@ -152,8 +153,5 @@ def main():
 
 if __name__ == '__main__':
 	os.environ["DISPLAY"] = ":0"
-	cec.init()
-	tv = cec.Device(cec.CECDEVICE_TV)
-	print(tv)
 	main()
 
