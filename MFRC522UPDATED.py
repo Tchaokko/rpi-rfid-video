@@ -415,6 +415,13 @@ class MFRC522:
         if status == self.MI_OK:
             self.logger.debug("Data written")
 
+            
+    def MFRC522_DumpUltralight(self, uid):
+        i = 0
+        while i < 256:
+            self.MFRC522_Read(i)
+            i = i+1
+
 
 
     def MFRC522_DumpClassic1K(self, key, uid):

@@ -5,12 +5,12 @@ import vlc
 from pathlib import Path
 import time
 import os
+from os.path import isfile, join
 import logging
-import random
-import glob
 import RPi.GPIO as GPIO
 import pygame
 from cec import CustomCec
+from UltralightRead import UltralightRead
 import json
 import sys
 
@@ -26,8 +26,11 @@ class MainClass:
 		file = open('config.json')
 		data = json.load(file)
 		self.videoPath = data['usbPath']
-		self.reader = SimpleMFRC522()
-		pass
+		self.reader = UltralightRead()
+		self.get_movies(self.videoPath)
+
+	def get_movies(self, directory):
+		self.movies = [f for f in os.listdir(directory) if isfile(join(directory, f))]
 
 	def playmovie(self,video,directory):
 
@@ -158,21 +161,24 @@ class MainClass:
 				logging.debug(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " + Movie Name: %s" % movie_name)
 
 				movie_name = movie_name.rstrip()
-
-				if current_movie_id != idd:
+				cleaned_movie_name = ''
+				for filename in self.movies:
+					if(filename in movie_name):
+						cleaned_movie_name = filename
+				if current_movie_id != idd and cleaned_movie_name!= '':
 
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' New Movie')
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " - ID: %s" % idd)
-					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " - Name: %s" % movie_name)
+					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " - Name: %s" % cleaned_movie_name)
 					#this is a check in place to prevent omxplayer from restarting video if ID is left over the reader.
 					#better to use id than movie_name as there can be a problem reading movie_name occasionally
 					
 
-					if movie_name.endswith(('.mp4', '.avi', '.m4v','.mkv')):
+					if cleaned_movie_name.endswith(('.mp4', '.avi', '.m4v','.mkv')):
 						current_movie_id = idd 	#we set this here instead of above bc it may mess up on first read
-						logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " playing: omxplayer %s" % movie_name)
+						logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " playing: omxplayer %s" % cleaned_movie_name)
 						
-					self.playmovie(movie_name,self.videoPath)
+					self.playmovie(cleaned_movie_name,self.videoPath)
 			except KeyboardInterrupt:
 				print('exit')
 				GPIO.cleanup()
