@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from random import randint
-from SimpleMFRC522 import SimpleMFRC522
 import vlc
 from pathlib import Path
 import time
@@ -27,7 +26,12 @@ class MainClass:
 		data = json.load(file)
 		self.videoPath = data['usbPath']
 		self.reader = UltralightRead()
-		self.get_movies(self.videoPath)
+		self.get_movies(self.videoPath)			
+		win_id = pygame.display.get_wm_info()['window']
+		pygame.mouse.set_visible(False)
+		self.playerVLC.set_xwindow(win_id)
+
+
 
 	def get_movies(self, directory):
 		self.movies = [f for f in os.listdir(directory) if isfile(join(directory, f))]
@@ -35,7 +39,7 @@ class MainClass:
 	def playmovie(self,video,directory):
 
 		"""plays a video."""
-		cec = CustomCec()
+		#cec = CustomCec()
 		VIDEO_PATH = Path(directory + video)
 
 		isPlay = self.is_playing()
@@ -49,12 +53,9 @@ class MainClass:
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+ 'playmovie: Video already playing, so quit current video, then play')
 			self.playerVLC.stop()
 		try:
-			cec.force_hdmi_to_input()
+			#cec.force_hdmi_to_input()
 			time.sleep(2)
-			win_id = pygame.display.get_wm_info()['window']
-			self.playerVLC.set_xwindow(win_id)
 			media = vlc.Media(VIDEO_PATH)
-			pygame.mouse.set_visible(False)
 			self.playerVLC.set_media(media)
 			self.playerVLC.play()
 		except SystemError:

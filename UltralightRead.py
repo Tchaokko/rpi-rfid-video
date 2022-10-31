@@ -1,9 +1,7 @@
 
 import RPi.GPIO as GPIO
-from MFRC522UPDATED import MFRC522
+from MFRC522 import MFRC522
 import re
-
-continue_reading = True
 
 
 class UltralightRead:
@@ -39,28 +37,15 @@ class UltralightRead:
             while block_num < 8:
                 block = self.MIFAREReader.MFRC522_Read(block_num) 
                 datachr = ''
-                result = ''
                 if(block_num == 5):
                     datachr += ''.join(chr(i) for i in block)
                     cleanedString = re.sub("[^\w.]+",'', datachr)
-                    # cleanedString = ''.join(e for e in datachr if e.isalnum())
                 else:
                     datachr += ''.join(chr(i) for i in block)
-                    # temp = ''.join(e for e in datachr if e.isalnum())
                     temp =  re.sub("[^\w.]+",'', datachr)
                     cleanedString += temp[-4:]
                 block_num +=1
 
-            print(cleanedString)
             self.MIFAREReader.MFRC522_StopCrypto1()
             return uid, cleanedString
         return None, None
-
-
-# Create an object of the class MFRC522
-
-# Welcome message
-print ("Welcome to the MFRC522 data read example")
-print ("Press Ctrl-C to stop.")
-
-# This loop keeps checking for chips. If one is near it will get the UID and authenticate

@@ -2,7 +2,7 @@
 
 import RPi.GPIO as GPIO
 import SimpleMFRC522
-from MFRC522UPDATED import MFRC522
+from MFRC522 import MFRC522
 reader = SimpleMFRC522.SimpleMFRC522()
 readerUpdated = MFRC522()
 print('Scan Card')
