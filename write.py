@@ -11,7 +11,7 @@ try:
 
     while True:
 
-        text = ('rick.mkv')
+        text = ('toto.mkv')
 
         # if len(text) > 48:
 

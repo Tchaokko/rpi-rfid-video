@@ -26,7 +26,7 @@ class MainClass:
 		file = open('config.json')
 		data = json.load(file)
 		self.videoPath = data['usbPath']
-		self.reader = SimpleMFRC522(self.screen)
+		self.reader = SimpleMFRC522()
 		pass
 
 	def playmovie(self,video,directory):
