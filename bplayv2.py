@@ -15,7 +15,10 @@ import sys
 
 
 class MainClass:
-	playerVLC = vlc.MediaPlayer()
+	instance = vlc.Instance('--no-xlib --quiet')
+	playerVLC = instance.media_player_new()
+	playerVLC.video_set_mouse_input(False)
+	playerVLC.video_set_key_input(False)
 	reader = ''
 	play_has_ended = False
 	videoPath = ''
@@ -51,19 +54,18 @@ class MainClass:
 		else:
 
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+ 'playmovie: Video already playing, so quit current video, then play')
-			self.playerVLC.stop()
+
 		try:
 			self.cec.force_hdmi_to_input()
-			time.sleep(2)
 			media = vlc.Media(VIDEO_PATH)
 			self.playerVLC.set_media(media)
+			self.playerVLC.audio_set_volume(100)
 			self.playerVLC.play()
 		except SystemError:
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' $Error: Cannot Find Video.')
 
 		logging.info('playmovie: vlc %s' % video)
 
-		time.sleep(2)
 
 	def quit_player_if_ended(self):
 		print('quit_player_if_ended')
@@ -86,9 +88,8 @@ class MainClass:
 		if self.is_playing() and self.play_has_ended:
 			self.play_has_ended = False
 		elif state == 6 and not self.play_has_ended:
-			self.playerVLC.stop()
-			self.screen.fill((0, 0, 0))
-			pygame.display.update()
+			self.playerVLC.set_media(vlc.Media(Path(self.videoPath + 'blackscreen.jpg')))
+			self.playerVLC.play()
 			self.play_has_ended = True
 
 	def is_playing(self):

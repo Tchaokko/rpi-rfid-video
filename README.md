@@ -1,3 +1,10 @@
+# new requirement 
+python 3
+install pip requirement.txt
+ Change --> dtoverlay=vc4-kms-v3d
+To --> dtoverlay=vc4-fkms-v3d
+in /boot/config.txt
+
 # rpi-rfid-video
 This is a a video player that scans RFID cards to play videos.
 
