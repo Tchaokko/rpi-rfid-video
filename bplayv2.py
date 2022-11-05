@@ -184,6 +184,7 @@ class MainClass:
 				print('exit')
 				GPIO.cleanup()
 				print("\nAll Done")
+				exit()
 
 if __name__ == '__main__':
 	
