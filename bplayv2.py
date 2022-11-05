@@ -8,7 +8,7 @@ from os.path import isfile, join
 import logging
 import RPi.GPIO as GPIO
 import pygame
-from cec import CustomCec
+from cecLibrary import CustomCec
 from UltralightRead import UltralightRead
 import json
 import sys
@@ -30,6 +30,7 @@ class MainClass:
 		win_id = pygame.display.get_wm_info()['window']
 		pygame.mouse.set_visible(False)
 		self.playerVLC.set_xwindow(win_id)
+		self.cec = CustomCec()
 
 
 
@@ -39,7 +40,6 @@ class MainClass:
 	def playmovie(self,video,directory):
 
 		"""plays a video."""
-		#cec = CustomCec()
 		VIDEO_PATH = Path(directory + video)
 
 		isPlay = self.is_playing()
@@ -53,7 +53,7 @@ class MainClass:
 			logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+ 'playmovie: Video already playing, so quit current video, then play')
 			self.playerVLC.stop()
 		try:
-			#cec.force_hdmi_to_input()
+			self.cec.force_hdmi_to_input()
 			time.sleep(2)
 			media = vlc.Media(VIDEO_PATH)
 			self.playerVLC.set_media(media)
