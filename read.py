@@ -9,7 +9,10 @@ reader = SimpleMFRC522.SimpleMFRC522()
 try:
 	while True:
 
+		
 		id, text = reader.read()
+		while not id:
+			id, text = reader.read()
 		print(id)
 		print(text)
 		print(len(text))
