@@ -110,6 +110,14 @@ class MainClass:
 				return True
 			else:
 				return False
+	def get_clean_movie_name(self, movie_name):
+		movie_name = movie_name.rstrip()
+		movie_name = movie_name.lower()
+		cleaned_movie_name = ''
+		for filename in self.movies:
+			if(filename.lower() in movie_name):
+				cleaned_movie_name = filename
+		return cleaned_movie_name
 
 	def main_loop(self):
 
@@ -161,11 +169,7 @@ class MainClass:
 				logging.debug(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " + ID: %s" % idd)
 				logging.debug(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + " + Movie Name: %s" % movie_name)
 
-				movie_name = movie_name.rstrip()
-				cleaned_movie_name = ''
-				for filename in self.movies:
-					if(filename in movie_name):
-						cleaned_movie_name = filename
+				cleaned_movie_name = self.get_clean_movie_name(movie_name)
 				if current_movie_id != idd and cleaned_movie_name!= '':
 
 					logging.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ' New Movie')
